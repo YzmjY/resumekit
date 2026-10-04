@@ -428,6 +428,13 @@ async function main() {
   }
 
   /* ---- 复制预览图到剪贴板 ---- */
+  // 剪贴板 API 要求文档处于聚焦状态；隐藏窗口在连续运行后可能失去焦点，
+  // 这里显式激活，避免把环境问题误判成应用缺陷。
+  win.show()
+  win.focus()
+  win.webContents.focus()
+  await delay(600)
+
   const copied = await runScript(
     win,
     `(async () => {
@@ -555,6 +562,76 @@ async function main() {
     '移除后模板实际应用的字体族同步更新',
     typeof fontRemoved.docFont === 'string' && fontRemoved.docFont.indexOf(fontRemoved.after[0]) >= 0,
     fontRemoved.after ? fontRemoved.after[0] : ''
+  )
+
+  /* ---- 自动更新界面 ---- */
+  const updateCard = await runScript(
+    win,
+    `(async () => {
+      const group = [...document.querySelectorAll('.group')].find((g) => {
+        const head = g.querySelector('.group__head')
+        return head && head.textContent && head.textContent.indexOf('关于与更新') >= 0
+      })
+      if (!group) return JSON.stringify({ ok: false, why: '未找到「关于与更新」分组' })
+      const head = group.querySelector('.group__head')
+      // 默认收起，需要先展开
+      if (!group.querySelector('.update')) head.click()
+      await new Promise((r) => setTimeout(r, 700))
+
+      const card = document.querySelector('.update')
+      if (!card) return JSON.stringify({ ok: false, why: '分组展开后仍未渲染更新卡片' })
+
+      const label = (card.querySelector('.update__label') || {}).textContent || ''
+      const message = (card.querySelector('.update__message') || {}).textContent || ''
+      const buttons = [...card.querySelectorAll('button')].map((b) => (b.textContent || '').trim())
+      const panelText = group.textContent || ''
+      const apiKeys = Object.keys(window.api)
+      const state = await window.api.updateState()
+      const support = await window.api.updateSupport()
+
+      return JSON.stringify({
+        ok: true,
+        label,
+        message,
+        buttons,
+        panelText,
+        apiKeys,
+        stateStatus: state.status,
+        currentVersion: state.currentVersion,
+        support
+      })
+    })()`,
+    '检查自动更新界面'
+  )
+
+  check('存在「关于与更新」面板并渲染更新卡片', Boolean(updateCard.ok), updateCard.ok ? '' : updateCard.why)
+  check(
+    'preload 暴露更新接口',
+    Array.isArray(updateCard.apiKeys) &&
+      ['updateState', 'updateSupport', 'checkUpdate', 'installUpdate', 'onUpdateChanged'].every((k) =>
+        updateCard.apiKeys.includes(k)
+      ),
+    (updateCard.apiKeys || []).join(', ')
+  )
+  check(
+    '开发模式下明确判定为不支持自动更新',
+    Boolean(updateCard.support) && updateCard.support.supported === false && updateCard.support.reason === 'development',
+    JSON.stringify(updateCard.support)
+  )
+  check(
+    '界面说明不支持的原因，而不是给出一个注定失败的按钮',
+    typeof updateCard.message === 'string' && updateCard.message.indexOf('开发模式') >= 0,
+    updateCard.message
+  )
+  check(
+    '面板中展示当前版本号',
+    typeof updateCard.panelText === 'string' && updateCard.panelText.indexOf(updateCard.currentVersion) >= 0,
+    `版本 ${updateCard.currentVersion}`
+  )
+  check(
+    '不支持时提供「打开下载页面」入口',
+    Array.isArray(updateCard.buttons) && updateCard.buttons.some((b) => b.indexOf('下载页面') >= 0),
+    (updateCard.buttons || []).join(' / ')
   )
 
   /* ---- 截图存档：DOM 断言不能替代肉眼确认版式 ---- */

@@ -5,6 +5,11 @@
   "version": "0.1.0",
   "description": "A desktop resume builder: 5 built-in templates, every typographic token adjustable, and PDF export that matches the on-screen preview page for page.",
   "author": "ResumeKit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YzmjY/resumekit.git"
+  },
+  "homepage": "https://github.com/YzmjY/resumekit",
   "main": "out/main/index.js",
   "type": "module",
   "scripts": {
@@ -14,10 +19,13 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "dist": "electron-vite build && electron-builder --win --publish never",
     "dist:dir": "electron-vite build && electron-builder --win --dir --publish never",
+    "dist:publish": "electron-vite build && electron-builder --win --publish always",
     "probe": "electron scripts/probe/probe.cjs",
-    "probe:packaged": "electron scripts/probe/packaged-smoke.cjs"
+    "probe:packaged": "electron scripts/probe/packaged-smoke.cjs",
+    "probe:update": "electron scripts/probe/update-smoke.cjs"
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "zustand": "5.0.15"
   },
   "devDependencies": {
@@ -45,23 +53,39 @@
       "out/**/*",
       "package.json"
     ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "YzmjY",
+        "repo": "resumekit"
+      }
+    ],
     "win": {
       "target": [
         {
           "target": "nsis",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         },
         {
           "target": "portable",
-          "arch": ["x64"]
+          "arch": [
+            "x64"
+          ]
         }
       ]
+    },
+    "portable": {
+      "artifactName": "ResumeKit-Portable-${version}.${ext}"
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "shortcutName": "ResumeKit"
+      "shortcutName": "ResumeKit",
+      "deleteAppDataOnUninstall": false,
+      "artifactName": "ResumeKit-Setup-${version}.${ext}"
     }
   }
 }

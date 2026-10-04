@@ -6,6 +6,7 @@ import type {
   ResumeIndex,
   ResumeIndexEntry
 } from '@shared/resume'
+import type { UpdateState, UpdateSupport } from '@shared/update'
 
 /**
  * 渲染进程唯一的原生能力入口。
@@ -27,6 +28,18 @@ const api = {
   /* 导出 */
   exportPdf: (request: ExportPdfRequest): Promise<ExportPdfResult> => ipcRenderer.invoke('export:pdf', request),
 
+  /* 自动更新 */
+  updateState: (): Promise<UpdateState> => ipcRenderer.invoke('update:state'),
+  updateSupport: (): Promise<UpdateSupport> => ipcRenderer.invoke('update:support'),
+  checkUpdate: (): Promise<UpdateState> => ipcRenderer.invoke('update:check'),
+  installUpdate: (): Promise<{ ok: boolean; reason?: string }> => ipcRenderer.invoke('update:install'),
+  /** 订阅主进程推送的更新状态；返回取消订阅函数 */
+  onUpdateChanged: (listener: (state: UpdateState) => void): (() => void) => {
+    const handler = (_event: unknown, state: UpdateState): void => listener(state)
+    ipcRenderer.on('update:changed', handler)
+    return () => ipcRenderer.removeListener('update:changed', handler)
+  },
+
   /* 应用信息与系统集成 */
   info: (): Promise<{ version: string; dataDir: string; platform: string; dev: boolean }> =>
     ipcRenderer.invoke('app:info'),
@@ -34,6 +47,6 @@ const api = {
   showItem: (target: string): Promise<boolean> => ipcRenderer.invoke('shell:showItem', target)
 }
 
-export type ResumeStudioApi = typeof api
+export type ResumeKitApi = typeof api
 
 contextBridge.exposeInMainWorld('api', api)

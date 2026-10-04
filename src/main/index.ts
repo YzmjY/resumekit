@@ -3,7 +3,16 @@ import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
 import { ResumeStore } from './storage'
 import { generatePdf } from './export-pdf'
 import { bootLog } from './boot-log'
+import {
+  checkForUpdates,
+  detectSupport,
+  getUpdateState,
+  installUpdate,
+  onUpdateState,
+  startAutoUpdate
+} from './auto-update'
 import type { ExportPdfRequest, Resume } from '@shared/resume'
+import type { UpdateState } from '@shared/update'
 
 const isDev = !app.isPackaged
 let mainWindow: BrowserWindow | null = null
@@ -140,6 +149,28 @@ function registerIpc(): void {
     const window = BrowserWindow.fromWebContents(event.sender)
     return generatePdf(window, request, store.exportDir())
   })
+
+  /* ---- 自动更新 ---- */
+
+  ipcMain.handle('update:state', async () => getUpdateState())
+
+  ipcMain.handle('update:support', async () => detectSupport())
+
+  ipcMain.handle('update:check', async () => checkForUpdates(true))
+
+  ipcMain.handle('update:install', async () => {
+    const started = installUpdate()
+    if (!started) return { ok: false, reason: '当前没有已下载的更新' }
+    // 先让 IPC 返回，再触发退出安装：quitAndInstall 会立刻关闭所有窗口，
+    // 反过来的话渲染进程永远等不到响应。
+    return { ok: true }
+  })
+
+  // 主进程推送更新状态：窗口关闭后仍会触发，需要判空
+  onUpdateState((state: UpdateState) => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    mainWindow.webContents.send('update:changed', state)
+  })
 }
 
 /* ------------------------------------------------------------------ *
@@ -178,6 +209,11 @@ if (!gotLock) {
         bootLog('IPC 已注册')
 
         createWindow()
+
+        // 首屏之后再启动更新检查，避免与简历库加载、字体探测抢时间
+        mainWindow?.once('ready-to-show', () => {
+          startAutoUpdate()
+        })
       } catch (error) {
         bootLog('启动流程抛出异常', {
           message: error instanceof Error ? error.message : String(error),

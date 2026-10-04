@@ -6,6 +6,8 @@ import { InspectorPane } from './components/Inspector'
 import { SectionList } from './components/SectionEditor'
 import { MetaForm } from './components/fields'
 import { ImageCropper } from './components/ImageCropper'
+import { UpdateCard } from './components/UpdateCard'
+import { RELEASE_PAGE_URL } from '@shared/update'
 import {
   IconChevron,
   IconCopy,
@@ -248,7 +250,13 @@ function MetaPanel({ notify }: { notify: (toast: Toast) => void }) {
  * 左侧栏
  * ------------------------------------------------------------------ */
 
-function LeftPane({ notify }: { notify: (toast: Toast) => void }) {
+function LeftPane({
+  notify,
+  info
+}: {
+  notify: (toast: Toast) => void
+  info: { version: string; dataDir: string } | null
+}) {
   const resume = useResumeStore((s) => s.resume)
   const renameResume = useResumeStore((s) => s.renameResume)
   const saveState = useResumeStore((s) => s.saveState)
@@ -284,6 +292,31 @@ function LeftPane({ notify }: { notify: (toast: Toast) => void }) {
             </div>
           </div>
         </div>
+
+        <Group title="关于与更新" defaultOpen={false}>
+          <UpdateCard />
+          <div className="divider" />
+          <div className="field__hint">
+            <div>版本 {info?.version ?? '—'}</div>
+            <div style={{ marginTop: 4, wordBreak: 'break-all' }}>数据目录：{info?.dataDir ?? '—'}</div>
+          </div>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => void window.api.openExternal('https://github.com/YzmjY/resumekit')}
+            >
+              项目主页
+            </button>
+            <button
+              type="button"
+              className="btn btn--sm"
+              onClick={() => void window.api.openExternal(RELEASE_PAGE_URL)}
+            >
+              版本历史
+            </button>
+          </div>
+        </Group>
       </div>
     </aside>
   )
@@ -462,7 +495,7 @@ export function App() {
             </div>
           </aside>
         ) : (
-          <LeftPane notify={notify} />
+          <LeftPane notify={notify} info={info} />
         )}
 
         {error ? (

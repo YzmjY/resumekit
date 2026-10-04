@@ -1,8 +1,8 @@
-import type { ResumeStudioApi } from './index'
+import type { ResumeKitApi } from './index'
 
 declare global {
   interface Window {
-    api: ResumeStudioApi
+    api: ResumeKitApi
   }
 }
 
