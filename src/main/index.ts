@@ -1,6 +1,13 @@
 import path from 'node:path'
-import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, shell } from 'electron'
 import { ResumeStore } from './storage'
+import {
+  migrateStoreData,
+  resetCustomDataDir,
+  resolveDataDir,
+  setCustomDataDir,
+  validateDataDir
+} from './data-dir'
 import { generatePdf } from './export-pdf'
 import { bootLog } from './boot-log'
 import {
@@ -17,6 +24,7 @@ import type { UpdateState } from '@shared/update'
 const isDev = !app.isPackaged
 let mainWindow: BrowserWindow | null = null
 let store: ResumeStore
+let activeDataDir = ''
 
 bootLog('module loaded', {
   isPackaged: app.isPackaged,
@@ -129,10 +137,49 @@ function registerIpc(): void {
 
   ipcMain.handle('app:info', () => ({
     version: app.getVersion(),
-    dataDir: app.getPath('userData'),
+    dataDir: activeDataDir,
+    defaultDataDir: app.getPath('userData'),
+    isCustomDataDir: activeDataDir !== app.getPath('userData'),
     platform: process.platform,
     dev: isDev
   }))
+
+  /* ---- 数据目录 ---- */
+
+  ipcMain.handle('dataDir:choose', async (event) => {
+    const window = BrowserWindow.fromWebContents(event.sender)
+    if (!window) return { ok: false, reason: '窗口已关闭' }
+    const picked = await dialog.showOpenDialog(window, {
+      title: '选择数据保存目录',
+      defaultPath: activeDataDir,
+      properties: ['openDirectory', 'createDirectory', 'promptToCreate']
+    })
+    if (picked.canceled || picked.filePaths.length === 0) return { ok: false, reason: 'cancelled' }
+    const target = picked.filePaths[0]
+
+    const invalid = await validateDataDir(target, activeDataDir)
+    if (invalid) return { ok: false, reason: invalid }
+
+    // 复制现有数据（不删除旧目录），写入设置后重启生效
+    await migrateStoreData(activeDataDir, target)
+    await setCustomDataDir(target)
+    bootLog('数据目录已更改，准备重启', { from: activeDataDir, to: target })
+    setImmediate(() => {
+      app.relaunch()
+      app.exit(0)
+    })
+    return { ok: true }
+  })
+
+  ipcMain.handle('dataDir:reset', async () => {
+    await resetCustomDataDir()
+    bootLog('数据目录已恢复默认，准备重启', { dir: app.getPath('userData') })
+    setImmediate(() => {
+      app.relaunch()
+      app.exit(0)
+    })
+    return { ok: true }
+  })
 
   ipcMain.handle('shell:openExternal', async (_event, url: string) => {
     if (!/^https?:/i.test(url)) throw new Error('只允许打开 http/https 链接')
@@ -200,9 +247,11 @@ if (!gotLock) {
     .then(async () => {
       bootLog('whenReady 触发')
       try {
-        store = new ResumeStore(app.getPath('userData'))
+        const resolved = await resolveDataDir()
+        activeDataDir = resolved.dir
+        store = new ResumeStore(resolved.dir)
         await store.init()
-        bootLog('存储层初始化完成', app.getPath('userData'))
+        bootLog('存储层初始化完成', resolved.dir)
 
         Menu.setApplicationMenu(null)
         registerIpc()

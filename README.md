@@ -338,6 +338,11 @@ Avatars are stored as data URLs inside the resume file, so copying a resume file
 
 > The directory name comes from `productName` in `package.json`; without it, it falls back to the lowercase package name `resumekit`.
 
+### Custom directories
+
+- **Install directory** — the NSIS installer (`ResumeKit-Setup-x.y.z.exe`) is an assisted installer: it asks where to put the program before installing (`build.nsis.oneClick: false` + `allowToChangeInstallationDirectory: true` in `package.json`). The portable build needs no installation at all.
+- **Data directory** — by default data lives in `%APPDATA%\ResumeKit`, but you can move it anywhere (a synced folder, a USB stick for the portable build, a second drive). In the left pane, open **About & updates → 更改数据目录…**: pick a folder, and the app copies `resumes/`, `media/` and `exports/` there (the old directory is left untouched as a backup) and restarts into the new location. The choice is remembered in `resumekit-settings.json` inside the default data directory, so the custom location survives updates; if that folder ever becomes unavailable, the app falls back to the default and starts normally. **恢复默认位置** switches back. The active directory is always shown in the same panel (marked 自定义 when overridden).
+
 ---
 
 ## Code structure
@@ -346,6 +351,7 @@ Avatars are stored as data URLs inside the resume file, so copying a resume file
 src/
 ├── main/                      Electron main process
 │   ├── index.ts               window, lifecycle, IPC registration
+│   ├── data-dir.ts            custom data directory (settings, validation, migration)
 │   ├── storage.ts             resume library I/O (atomic writes, index rebuild)
 │   ├── export-pdf.ts          hidden-window render + printToPDF
 │   ├── auto-update.ts         electron-updater wiring, state machine, fallbacks

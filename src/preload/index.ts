@@ -41,8 +41,18 @@ const api = {
   },
 
   /* 应用信息与系统集成 */
-  info: (): Promise<{ version: string; dataDir: string; platform: string; dev: boolean }> =>
-    ipcRenderer.invoke('app:info'),
+  info: (): Promise<{
+    version: string
+    dataDir: string
+    defaultDataDir: string
+    isCustomDataDir: boolean
+    platform: string
+    dev: boolean
+  }> => ipcRenderer.invoke('app:info'),
+  /** 弹出目录选择框更换数据目录；成功后会自动重启应用 */
+  chooseDataDir: (): Promise<{ ok: boolean; reason?: string }> => ipcRenderer.invoke('dataDir:choose'),
+  /** 恢复默认数据目录并重启 */
+  resetDataDir: (): Promise<{ ok: boolean; reason?: string }> => ipcRenderer.invoke('dataDir:reset'),
   openExternal: (url: string): Promise<boolean> => ipcRenderer.invoke('shell:openExternal', url),
   showItem: (target: string): Promise<boolean> => ipcRenderer.invoke('shell:showItem', target)
 }

@@ -29,6 +29,13 @@ interface Toast {
   reveal?: string
 }
 
+interface AppInfo {
+  version: string
+  dataDir: string
+  defaultDataDir: string
+  isCustomDataDir: boolean
+}
+
 /* ------------------------------------------------------------------ *
  * 折叠分组
  * ------------------------------------------------------------------ */
@@ -255,11 +262,28 @@ function LeftPane({
   info
 }: {
   notify: (toast: Toast) => void
-  info: { version: string; dataDir: string } | null
+  info: AppInfo | null
 }) {
   const resume = useResumeStore((s) => s.resume)
   const renameResume = useResumeStore((s) => s.renameResume)
   const saveState = useResumeStore((s) => s.saveState)
+
+  /** 换数据目录：主进程负责弹框、校验、迁移，成功后自动重启 */
+  const changeDataDir = async () => {
+    notify({ kind: 'info', text: '请在弹出的对话框中选择新的数据保存目录…' })
+    const result = await window.api.chooseDataDir()
+    if (result.ok) {
+      notify({ kind: 'info', text: '数据已复制到新目录，应用即将重启…' })
+    } else if (result.reason !== 'cancelled') {
+      notify({ kind: 'error', text: `更换数据目录失败：${result.reason}` })
+    }
+  }
+
+  /** 恢复默认数据目录（userData），成功后自动重启 */
+  const resetDataDir = async () => {
+    const result = await window.api.resetDataDir()
+    if (result.ok) notify({ kind: 'info', text: '已恢复默认数据目录，应用即将重启…' })
+  }
 
   if (!resume) return null
 
@@ -298,9 +322,20 @@ function LeftPane({
           <div className="divider" />
           <div className="field__hint">
             <div>版本 {info?.version ?? '—'}</div>
-            <div style={{ marginTop: 4, wordBreak: 'break-all' }}>数据目录：{info?.dataDir ?? '—'}</div>
+            <div style={{ marginTop: 4, wordBreak: 'break-all' }}>
+              数据目录：{info?.dataDir ?? '—'}
+              {info?.isCustomDataDir ? '（自定义）' : ''}
+            </div>
           </div>
-          <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
+          <div style={{ display: 'flex', gap: 6, marginTop: 8, flexWrap: 'wrap' }}>
+            <button type="button" className="btn btn--sm" onClick={() => void changeDataDir()}>
+              更改数据目录…
+            </button>
+            {info?.isCustomDataDir ? (
+              <button type="button" className="btn btn--sm" onClick={() => void resetDataDir()}>
+                恢复默认位置
+              </button>
+            ) : null}
             <button
               type="button"
               className="btn btn--sm"
@@ -344,7 +379,7 @@ export function App() {
   const saveNow = useResumeStore((s) => s.saveNow)
 
   const [toast, setToast] = useState<Toast | null>(null)
-  const [info, setInfo] = useState<{ version: string; dataDir: string } | null>(null)
+  const [info, setInfo] = useState<AppInfo | null>(null)
   const [fitScale, setFitScale] = useState(1)
 
   const notify = useCallback((next: Toast) => setToast(next), [])
