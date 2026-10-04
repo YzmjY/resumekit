@@ -1,0 +1,671 @@
+/* ==================================================================
+ * 简历模板样式
+ * 该文件同时被「屏幕预览」与「PDF 打印窗口」引用，只允许使用 CSS 变量，
+ * 不得出现屏幕专用的固定尺寸，否则预览与导出会不一致。
+ * ================================================================== */
+
+.rs-doc {
+  box-sizing: border-box;
+  width: var(--rs-page-width);
+  min-height: var(--rs-page-height);
+  background: #fff;
+  color: var(--rs-c-text);
+  font-family: var(--rs-font);
+  font-size: var(--rs-fs-base);
+  line-height: var(--rs-lh);
+  letter-spacing: var(--rs-ls);
+  padding: var(--rs-pad-y) var(--rs-pad-x);
+  border-radius: var(--rs-radius);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.rs-doc *,
+.rs-doc *::before,
+.rs-doc *::after {
+  box-sizing: border-box;
+}
+
+.rs-doc p {
+  margin: 0;
+}
+
+/* ---------------- 头部 ---------------- */
+
+.rs-header {
+  display: flex;
+  gap: 14px;
+  margin-bottom: var(--rs-gap-section);
+}
+
+.rs-identity {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.rs-name {
+  margin: 0 0 3px;
+  font-family: var(--rs-font-heading);
+  font-size: var(--rs-fs-name);
+  font-weight: var(--rs-fw-name);
+  line-height: 1.15;
+  letter-spacing: 0.2px;
+  color: var(--rs-c-primary);
+}
+
+.rs-title {
+  font-size: var(--rs-fs-h3);
+  color: var(--rs-c-muted);
+  margin-bottom: 5px;
+}
+
+.rs-contact {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-muted);
+  line-height: 1.6;
+}
+
+.rs-contact__part {
+  white-space: nowrap;
+}
+
+.rs-contact__sep {
+  margin: 0 6px;
+  opacity: 0.6;
+}
+
+.rs-header--left {
+  align-items: flex-start;
+}
+
+.rs-header--left .rs-avatar {
+  flex: 0 0 auto;
+  order: 2;
+}
+
+.rs-header--left .rs-identity {
+  order: 1;
+}
+
+.rs-header--center {
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.rs-header--center .rs-contact__part {
+  white-space: normal;
+}
+
+.rs-header--banner {
+  align-items: center;
+  background: var(--rs-c-header-bg);
+  padding: 16px 18px;
+  margin-left: calc(var(--rs-pad-x) * -1);
+  margin-right: calc(var(--rs-pad-x) * -1);
+  margin-top: calc(var(--rs-pad-y) * -1);
+  margin-bottom: var(--rs-gap-section);
+  border-bottom: 3px solid var(--rs-c-primary);
+}
+
+.rs-header--plain {
+  display: block;
+  margin-bottom: var(--rs-gap-section);
+}
+
+.rs-header--plain .rs-name {
+  font-size: calc(var(--rs-fs-name) * 0.78);
+}
+
+/* ---------------- 头像 ---------------- */
+
+.rs-avatar {
+  width: var(--rs-avatar-size);
+  height: var(--rs-avatar-size);
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: var(--rs-c-subtle);
+}
+
+.rs-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.rs-avatar--circle {
+  border-radius: 50%;
+}
+
+.rs-avatar--rounded {
+  border-radius: 12%;
+}
+
+.rs-avatar--square {
+  border-radius: 0;
+}
+
+/* ---------------- 堆叠容器 ---------------- */
+
+.rs-stack {
+  display: flex;
+  flex-direction: column;
+}
+
+.rs-stack--main {
+  gap: var(--rs-gap-section);
+}
+
+.rs-stack--side {
+  gap: calc(var(--rs-gap-section) * 0.85);
+}
+
+/* ---------------- 栏目 ---------------- */
+
+.rs-section {
+  min-width: 0;
+}
+
+.rs-h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 var(--rs-gap-heading);
+  font-family: var(--rs-font-heading);
+  font-size: var(--rs-fs-h2);
+  font-weight: var(--rs-fw-heading);
+  color: var(--rs-c-primary);
+  line-height: 1.3;
+  text-transform: var(--rs-heading-transform);
+  letter-spacing: var(--rs-heading-ls);
+}
+
+.rs-h2__text {
+  white-space: nowrap;
+}
+
+.rs-h2__index {
+  font-size: calc(var(--rs-fs-h2) * 0.82);
+  color: var(--rs-c-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* 标题右侧延伸细线 */
+.rs-h2--rule .rs-h2__line {
+  flex: 1 1 auto;
+  height: var(--rs-rule-w);
+  background: var(--rs-c-border);
+  min-width: 12px;
+}
+
+/* 标题下划线式 */
+.rs-h2--underline {
+  border-bottom: var(--rs-rule-w) solid var(--rs-c-border);
+  padding-bottom: 4px;
+}
+
+/* 标题左侧色块 */
+.rs-h2--bar {
+  border-left: var(--rs-rule-w) solid var(--rs-c-accent);
+  padding-left: 8px;
+}
+
+/* 侧栏标题：更小、带背景条 */
+.rs-h2--side {
+  font-size: calc(var(--rs-fs-h2) * 0.94);
+  color: var(--rs-c-sidebar-text);
+  border-bottom: 1px solid var(--rs-c-border);
+  padding-bottom: 3px;
+  margin-bottom: calc(var(--rs-gap-heading) * 0.75);
+}
+
+.rs-h2--plain {
+  margin-bottom: var(--rs-gap-heading);
+}
+
+/* ---------------- 条目 ---------------- */
+
+.rs-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-gap-item);
+}
+
+.rs-item,
+.rs-block--items > .rs-item {
+  break-inside: avoid;
+  page-break-inside: avoid;
+}
+
+.rs-item__head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.rs-item__head-main {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.rs-item__title {
+  font-size: var(--rs-fs-h3);
+  font-weight: 600;
+  color: var(--rs-c-text);
+}
+
+.rs-item__subtitle {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-primary);
+}
+
+.rs-item__meta {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  flex: 0 0 auto;
+}
+
+.rs-item__head--stacked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.rs-item__head--stacked .rs-item__meta {
+  display: flex;
+  gap: 10px;
+}
+
+.rs-item__extra {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-muted);
+  margin-top: 1px;
+}
+
+.rs-item__desc {
+  color: var(--rs-c-text);
+  opacity: 0.9;
+}
+
+.rs-item__desc p + p {
+  margin-top: var(--rs-gap-para);
+}
+
+.rs-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-gap-bullet);
+}
+
+.rs-bullets {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--rs-gap-bullet);
+}
+
+.rs-bullets li {
+  position: relative;
+  padding-left: 13px;
+}
+
+.rs-bullets li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.62em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--rs-c-accent);
+}
+
+.rs-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 2px;
+}
+
+.rs-tag {
+  font-size: calc(var(--rs-fs-small) * 0.96);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--rs-c-subtle);
+  color: var(--rs-c-primary);
+  white-space: nowrap;
+}
+
+/* ---------------- 技能 / 语言 / 证书 ---------------- */
+
+.rs-block--skill {
+  gap: calc(var(--rs-gap-item) * 0.8);
+}
+
+.rs-skill {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.rs-skill__name {
+  font-weight: 600;
+  color: var(--rs-c-text);
+}
+
+.rs-skill__level {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-accent);
+}
+
+.rs-skill__desc {
+  color: var(--rs-c-muted);
+  font-size: var(--rs-fs-small);
+}
+
+.rs-block--lang {
+  gap: calc(var(--rs-gap-item) * 0.7);
+}
+
+.rs-lang {
+  display: flex;
+  flex-direction: column;
+}
+
+.rs-lang__name {
+  font-weight: 600;
+}
+
+.rs-lang__level,
+.rs-lang__desc {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-muted);
+}
+
+.rs-block--cert {
+  gap: calc(var(--rs-gap-item) * 0.6);
+}
+
+.rs-cert {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.rs-cert__name {
+  font-weight: 500;
+}
+
+.rs-cert__meta {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-muted);
+}
+
+.rs-cert__desc {
+  font-size: var(--rs-fs-small);
+  color: var(--rs-c-muted);
+}
+
+/* ==================================================================
+ * 模板一：经典单栏
+ * ================================================================== */
+
+.rs-doc--classic .rs-h2 {
+  padding-bottom: 3px;
+  border-bottom: var(--rs-rule-w) solid var(--rs-c-border);
+}
+
+/* ==================================================================
+ * 模板二 / 三：双栏
+ * ================================================================== */
+
+.rs-doc--sidebar {
+  display: flex;
+  align-items: stretch;
+  padding: 0;
+  gap: 0;
+}
+
+.rs-doc--sidebar .rs-sidebar {
+  flex: 0 0 auto;
+  width: var(--rs-sidebar-w);
+  background: var(--rs-c-sidebar-bg);
+  color: var(--rs-c-sidebar-text);
+  padding: var(--rs-pad-side);
+  padding-top: var(--rs-pad-y);
+  padding-bottom: var(--rs-pad-y);
+  box-sizing: border-box;
+}
+
+.rs-doc--sidebar .rs-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: var(--rs-pad-y) var(--rs-pad-x);
+  padding-left: var(--rs-col-gap);
+}
+
+.rs-doc--sidebar-left .rs-main {
+  padding-left: var(--rs-col-gap);
+  padding-right: var(--rs-pad-x);
+}
+
+.rs-doc--sidebar-right .rs-sidebar {
+  order: 2;
+}
+
+.rs-doc--sidebar-right .rs-main {
+  order: 1;
+  padding-left: var(--rs-pad-x);
+  padding-right: var(--rs-col-gap);
+}
+
+.rs-doc--sidebar .rs-sidebar .rs-name {
+  color: var(--rs-c-sidebar-text);
+  font-size: calc(var(--rs-fs-name) * 0.72);
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.rs-doc--sidebar .rs-sidebar .rs-title {
+  color: var(--rs-c-sidebar-text);
+  opacity: 0.75;
+  font-size: var(--rs-fs-small);
+}
+
+.rs-doc--sidebar .rs-sidebar .rs-contact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--rs-c-sidebar-text);
+  opacity: 0.85;
+}
+
+.rs-doc--sidebar .rs-sidebar .rs-contact__part {
+  white-space: normal;
+  word-break: break-all;
+}
+
+.rs-doc--sidebar .rs-sidebar .rs-contact__sep {
+  display: none;
+}
+
+.rs-doc--sidebar .rs-sidebar .rs-tag {
+  background: rgba(255, 255, 255, 0.75);
+}
+
+/* 紧凑模板：更小的条目间距与更细的装饰 */
+.rs-doc--compact .rs-item__title {
+  font-weight: 650;
+}
+
+.rs-doc--compact .rs-tag {
+  border-radius: var(--rs-radius);
+  background: var(--rs-c-subtle);
+}
+
+/* ==================================================================
+ * 模板四：典雅衬线
+ * ================================================================== */
+
+.rs-doc--elegant .rs-header--center {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rs-c-border);
+  margin-bottom: calc(var(--rs-gap-section) * 1.15);
+}
+
+.rs-doc--elegant .rs-header--center .rs-name {
+  letter-spacing: 1.6px;
+}
+
+.rs-doc--elegant .rs-h2 {
+  justify-content: center;
+  gap: 12px;
+}
+
+.rs-doc--elegant .rs-h2::before,
+.rs-doc--elegant .rs-h2::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--rs-c-border);
+  min-width: 10px;
+}
+
+.rs-doc--elegant .rs-item__head {
+  justify-content: space-between;
+}
+
+.rs-doc--elegant .rs-bullets li::before {
+  border-radius: 0;
+  width: 5px;
+  height: 1px;
+  top: 0.62em;
+  background: var(--rs-c-accent);
+}
+
+/* ==================================================================
+ * 模板五：醒目时间线
+ * ================================================================== */
+
+.rs-doc--timeline .rs-header--banner .rs-name {
+  color: var(--rs-c-primary);
+}
+
+.rs-doc--timeline .rs-section {
+  padding-left: 14px;
+  position: relative;
+}
+
+.rs-doc--timeline .rs-section::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 2px;
+  bottom: 2px;
+  width: var(--rs-accent-bar);
+  background: var(--rs-c-accent);
+  border-radius: 2px;
+}
+
+.rs-doc--timeline .rs-h2 {
+  color: var(--rs-c-primary);
+}
+
+.rs-doc--timeline .rs-item {
+  padding-left: 12px;
+  border-left: 1px solid var(--rs-c-border);
+}
+
+.rs-doc--timeline .rs-bullets li::before {
+  background: var(--rs-c-primary);
+}
+
+.rs-timeline-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--rs-gap-section) * 1.2);
+  margin-top: calc(var(--rs-gap-section) * 1.1);
+  padding-top: calc(var(--rs-gap-section) * 0.8);
+  border-top: 1px solid var(--rs-c-border);
+}
+
+.rs-timeline-footer .rs-section {
+  flex: 1 1 30%;
+  min-width: 150px;
+  padding-left: 0;
+}
+
+.rs-timeline-footer .rs-section::before {
+  display: none;
+}
+
+/* ---------------- 打印规则 ---------------- */
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .rs-doc {
+    width: 100%;
+    min-height: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .rs-section,
+  .rs-item,
+  .rs-skill,
+  .rs-lang,
+  .rs-cert,
+  .rs-timeline-footer {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* 双栏模板的侧栏是一个整块，必须整体避免跨页断裂 */
+  .rs-sidebar {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .rs-stack--side > .rs-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .rs-h2 {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .rs-item__head {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* 双栏模板在打印时侧栏随整页拉伸，避免只覆盖第一页顶部 */
+  .rs-doc--sidebar {
+    min-height: 100%;
+  }
+}

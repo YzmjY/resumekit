@@ -1,0 +1,67 @@
+{
+  "name": "resumekit",
+  "productName": "ResumeKit",
+  "private": true,
+  "version": "0.1.0",
+  "description": "A desktop resume builder: 5 built-in templates, every typographic token adjustable, and PDF export that matches the on-screen preview page for page.",
+  "author": "ResumeKit",
+  "main": "out/main/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "electron-vite build",
+    "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
+    "dist": "electron-vite build && electron-builder --win --publish never",
+    "dist:dir": "electron-vite build && electron-builder --win --dir --publish never",
+    "probe": "electron scripts/probe/probe.cjs",
+    "probe:packaged": "electron scripts/probe/packaged-smoke.cjs"
+  },
+  "dependencies": {
+    "zustand": "5.0.15"
+  },
+  "devDependencies": {
+    "@swc/core": "^1.13.5",
+    "@types/node": "^22.15.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.2.0",
+    "electron": "44.5.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6"
+  },
+  "build": {
+    "appId": "com.resumekit.app",
+    "productName": "ResumeKit",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "shortcutName": "ResumeKit"
+    }
+  }
+}

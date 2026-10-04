@@ -1,0 +1,13 @@
+# 统一使用 LF；Windows 上的 .cmd/.bat 保持 CRLF
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+
+# 二进制资源不做行尾转换
+*.png binary
+*.ico binary
+*.exe binary
+*.pdf binary
+
+# 让 GitHub 的语言统计准确
+package-lock.json linguist-generated=true

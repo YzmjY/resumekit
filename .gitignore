@@ -1,0 +1,11 @@
+node_modules/
+out/
+release/
+dist/
+*.log
+.DS_Store
+.vite/
+.scratch/
+
+# TypeScript 增量编译信息（tsc --noEmit 也会生成）
+*.tsbuildinfo
