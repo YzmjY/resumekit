@@ -24,6 +24,12 @@ const { autoUpdater } = electronUpdater
 autoUpdater.autoDownload = true
 /** 用户选择「退出时安装」之后，即使没点重启按钮也会在退出时装上 */
 autoUpdater.autoInstallOnAppQuit = true
+/**
+ * 我们发布的是标准 NSIS 安装包，不是 web installer。
+ * 留 false 会让 electron-updater 在每次更新时打印安全警告，且未来版本默认改为
+ * true 后行为会变化；显式设为 true 同时消除警告与这个未来说明。
+ */
+autoUpdater.disableWebInstaller = true
 
 /**
  * 更新源上找不到版本清单时的兜底版本。
@@ -170,6 +176,8 @@ function describeError(error: unknown): string {
  * ------------------------------------------------------------------ */
 
 let wired = false
+/** 已写入日志的进度台阶；初值 -10 保证首个 10% 台阶之前不会记录 */
+let percentLogged = -10
 
 function wire(): void {
   if (wired) return
@@ -192,6 +200,7 @@ function wire(): void {
 
   autoUpdater.on('update-available', (info) => {
     bootLog('updater/update-available', { version: info?.version })
+    percentLogged = -10
     publish({
       status: 'downloading',
       availableVersion: info?.version ?? null,
@@ -216,13 +225,26 @@ function wire(): void {
   })
 
   autoUpdater.on('download-progress', (progress) => {
+    const percent = typeof progress?.percent === 'number' ? progress.percent : null
     publish({
       status: 'downloading',
-      progress: typeof progress?.percent === 'number' ? Math.round(progress.percent * 10) / 10 : null,
+      progress: percent === null ? null : Math.round(percent * 10) / 10,
       bytesPerSecond: progress?.bytesPerSecond ?? null,
       transferred: progress?.transferred ?? null,
       total: progress?.total ?? null
     })
+
+    // 进度每秒触发多次，只在跨过 10% 台阶时落日志，既不刷屏又能事后核对下载是否真的在走。
+    // 初值取 -10：第一个事件（通常是很小的百分比）必须先迈过一个台阶才会记录。
+    if (percent !== null && percent >= percentLogged + 10) {
+      percentLogged = Math.floor(percent / 10) * 10
+      bootLog('updater/download-progress', {
+        percent: Math.round(percent),
+        transferred: progress?.transferred,
+        total: progress?.total,
+        speed: progress?.bytesPerSecond
+      })
+    }
   })
 
   autoUpdater.on('update-downloaded', (info) => {

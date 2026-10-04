@@ -168,13 +168,51 @@ v0.1.0 was published before `build.publish` existed, so its Release has no `late
 
 **Debugging**
 
-Set `RESUMEKIT_BOOT_LOG=1` and the update flow is logged to `<APPDATA>/ResumeKit/boot.log` under `updater/*`: every check, every event, download progress and errors.
+Set `RESUMEKIT_BOOT_LOG=1` and the update flow is logged to `<APPDATA>/ResumeKit/boot.log` under `updater/*`: every check, every event, download progress in 10% steps, and errors.
 
 ```powershell
 $env:RESUMEKIT_BOOT_LOG='1'
 & '.\release\win-unpacked\ResumeKit.exe'
 Get-Content "$env:APPDATA\ResumeKit\boot.log" | Select-String 'updater/'
 ```
+
+An update that works looks like this:
+
+```
+updater/start  {"supported":true,"version":"0.1.1"}
+updater/info   Checking for update
+updater/info   Found version 0.1.2 (url: ResumeKit-Setup-0.1.2.exe)
+updater/update-available {"version":"0.1.2"}
+updater/info   New version 0.1.2 has been downloaded to ...\pending\ResumeKit-Setup-0.1.2.exe
+updater/update-downloaded {"version":"0.1.2"}
+updater/quitAndInstall                       ← 或 "Auto install update on quit"
+updater/info   Install: isSilent: false, isForceRunAfter: true
+updater/info   Executing: ...\pending\ResumeKit-Setup-0.1.2.exe with args: --updated,--force-run
+```
+
+**Downloads are full installers, not partial ones**
+
+electron-updater attempts a differential download first, and on a version bump it reports how little would need transferring:
+
+```
+updater/info Download block maps (old: .../ResumeKit-Setup-0.1.1.exe.blockmap, new: ...0.1.2.exe.blockmap)
+updater/info File has 48 changed blocks
+updater/info Full: 109,073.65 KB, To download: 923.35 KB (1%)
+updater/error Cannot download differentially, fallback to full download:
+              ENOENT: no such file or directory, open '...\resumekit-updater\installer.exe'
+```
+
+That `error` line is expected and harmless — the download then completes normally. It happens because the *previously installed* installer is no longer in the updater cache, so there is no local baseline to diff against. The practical consequence: **the first update after a manual install always pulls the whole installer** (~106 MB); a later update can be partial if the cached installer is still present. It is logged as `error` because electron-updater treats the failure that way, so do not read that line as a failed update.
+
+**Testing the real thing**
+
+Only an installed build can exercise download-and-replace, so `scripts/probe/installed-update-check.mjs` drives a real installation:
+
+```bash
+node scripts/probe/installed-update-check.mjs 900   # wait up to 900s
+```
+
+It launches the installed app with the startup log on, waits for the update to be found and downloaded, reads the in-app panel over the Chrome DevTools protocol to confirm the progress bar and the *Restart and install* button really appear, clicks the button, and reports what happened. The manual equivalent is to set `RESUMEKIT_BOOT_LOG=1` and watch `boot.log`.
 
 **Caveats**
 
@@ -421,6 +459,8 @@ electron scripts/probe/update-smoke.cjs        # auto-update module load + state
 - **Update artifact names are load-bearing.** `latest.yml` stores the installer filename verbatim, so any rename between the build and the Release asset breaks the download URL. GitHub rewrites spaces in uploaded asset names, which is why `nsis.artifactName` and `portable.artifactName` pin hyphenated names. Verify with `release/latest.yml`'s `url:` against the actual asset list.
 - **`electron-updater` is CommonJS.** Under `"type": "module"` a named import is unreliable; the official workaround is destructuring from the default export, which is what `src/main/auto-update.ts` does. `npm run probe:update` exists specifically to catch a regression here.
 - **`quitAndInstall` closes all windows immediately.** The IPC handler returns its response before triggering the install; doing it the other way leaves the renderer waiting forever.
+- **`disableWebInstaller` should be set to `true` explicitly.** Left unset, electron-updater logs a security warning on every update and its default is scheduled to flip, which would change behaviour under a released version.
+- **`releases/latest/download/latest.yml` resolves through GitHub's "latest release" alias, not by version.** Republishing a manifest on an older release does not change what clients see if a newer release exists. For the same reason, an installed build compares itself against whichever release is marked *Latest* — so testing an update requires publishing a genuinely newer tag (or being willing to test against the next real release).
 
 ---
 
