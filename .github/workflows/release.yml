@@ -48,3 +48,14 @@ jobs:
         run: npm run dist:publish
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload blockmap for differential updates
+        shell: pwsh
+        run: |
+          $blockmaps = @(Get-ChildItem release -Filter '*.blockmap' -File | ForEach-Object FullName)
+          if ($blockmaps.Count -eq 0) {
+            throw 'No blockmap was generated'
+          }
+          & gh release upload '${{ github.ref_name }}' @blockmaps --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
