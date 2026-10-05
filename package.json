@@ -2,7 +2,7 @@
   "name": "resumekit",
   "productName": "ResumeKit",
   "private": true,
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "A desktop resume builder: 5 built-in templates, every typographic token adjustable, and PDF export that matches the on-screen preview page for page.",
   "author": "ResumeKit",
   "repository": {
