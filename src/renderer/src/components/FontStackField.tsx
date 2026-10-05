@@ -167,7 +167,7 @@ export function FontStackField({
           <div className="fontstack__options">
             {GENERIC_FAMILIES.map((item) => (
               <button key={item.value} type="button" className="fontstack__option" onClick={() => addFamily(item.value)}>
-                {item.label}
+                <span className="fontstack__option-label" title={item.label}>{item.label}</span>
                 <span className="fontstack__option-name">{item.value}</span>
               </button>
             ))}
@@ -179,7 +179,7 @@ export function FontStackField({
                 onClick={() => addFamily(option.name)}
                 title={option.available ? '本机已安装' : '本机未安装'}
               >
-                {option.name}
+                <span className="fontstack__option-label" title={option.name}>{option.name}</span>
                 <span className="fontstack__option-mark">{option.available ? '本机有' : '未安装'}</span>
               </button>
             ))}
